@@ -72,7 +72,15 @@ class Filter(object):
             lookup = self.lookup_type
         if value in ([], (), {}, None, ''):
             return qs
-        qs = qs.filter(**{'%s__%s' % (self.name, lookup): value})
+
+        filter_kwargs = {'%s__%s' % (self.name, lookup): value}
+
+        try:
+            qs = qs.filter(**filter_kwargs)
+        except TypeError:
+            qs = qs.filter(
+                **dict((str(k), v) for (k, v) in filter_kwargs.iteritems()))
+
         if self.distinct:
             qs = qs.distinct()
         return qs
